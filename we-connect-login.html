@@ -1,0 +1,38 @@
+<script type="text/javascript">
+    RED.nodes.registerType('we-connect-login',{
+        category: 'function',
+        color: '#a6bbcf',
+        defaults: {
+            name: {value:""}
+        },
+        inputs:1,
+        outputs:1,
+        icon: "white-globe.png",
+        label: function() {
+            return this.name||"we-connect-login";
+        },
+        credentials: {
+            email: { type: "text" },
+            password: { type: "password" }
+        }
+    });
+</script>
+
+<script type="text/x-red" data-template-name="we-connect-login">
+    <div class="form-row">
+        <label for="node-input-name"><i class="icon-tag"></i> Name</label>
+        <input type="text" id="node-input-name" placeholder="Name">
+    </div>
+    <div class="form-row">
+       <label for="node-input-email"><i class="icon-tag"></i> Email</label>
+       <input type="text" id="node-input-email">
+    </div>
+    <div class="form-row">
+       <label for="node-input-password"><i class="icon-tag"></i> Password</label>
+       <input type="password" id="node-input-password">
+    </div>
+</script>
+
+<script type="text/x-red" data-help-name="we-connect-login">
+    <p>A node to log in to the Volkswagen We Connect web app.</p>
+</script>
