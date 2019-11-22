@@ -78,6 +78,9 @@ function login(cb, email, pass) {
     base_url = portal_base_url;
     auth_base_url = 'https://identity.vwgroup.io';
     landing_page_url = base_url + '/portal/en_GB/web/guest/home';
+    login_csrf = '';
+    login_relay_state_token = '';
+    client_id = '';
 
     rp({
         uri: landing_page_url,
@@ -90,150 +93,144 @@ function login(cb, email, pass) {
         auth_request_headers['X-CSRF-Token'] = csrf;
         get_login_url = base_url + '/portal/en_GB/web/guest/home/-/csrftokenhandling/get-login-url';
 
-        rp({
+        return rp({
             uri: get_login_url,
             jar: cookiejar,
             json: true,
             headers: auth_request_headers,
             method: 'POST'
-        }).then( function (body) {
-            var login_url = body.loginURL.path;
-            var client_id = extract_url_parameter(login_url, 'client_id');
+        });
+    }).then( function (body) {
+        var login_url = body.loginURL.path;
+        client_id = extract_url_parameter(login_url, 'client_id');
 
-            rp({
-                uri: login_url,
-                jar: cookiejar,
-                json: true,
-                headers: auth_request_headers,
-                method: 'POST',
-                simple: false,
-                resolveWithFullResponse: true
-            }).then( function (response) {
-                var login_form_url = response.headers.location;
-                var login_relay_state_token = extract_url_parameter(login_form_url, 'relayState');
+        return rp({
+            uri: login_url,
+            jar: cookiejar,
+            json: true,
+            headers: auth_request_headers,
+            method: 'POST',
+            simple: false,
+            resolveWithFullResponse: true
+        });
+    }).then( function (response) {
+        var login_form_url = response.headers.location;
+        login_relay_state_token = extract_url_parameter(login_form_url, 'relayState');
 
-                rp({
-                    uri: login_form_url,
-                    jar: cookiejar,
-                    json: true,
-                    headers: auth_request_headers
-                }).then( function (body) {
-                    var hmac_token1 = extract_login_hmac(body);
-                    var login_csrf = extract_login_csrf(body);
+        return rp({
+            uri: login_form_url,
+            jar: cookiejar,
+            json: true,
+            headers: auth_request_headers,
+            resolveWithFullResponse: true
+        });
+    }).then( function (response) {
+        var hmac_token1 = extract_login_hmac(response.body);
+        login_csrf = extract_login_csrf(response.body);
 
-                    delete auth_request_headers['X-CSRF-Token'];
-                    auth_request_headers['Referer'] = login_form_url;
-                    //auth_request_headers['Content-Type'] = 'application/x-www-form-urlencoded';
+        delete auth_request_headers['X-CSRF-Token'];
+        auth_request_headers['Referer'] = response.request.uri.href;
+        //auth_request_headers['Content-Type'] = 'application/x-www-form-urlencoded';
 
-                    var post_data = {
-                        'email': email,
-                        'relayState': login_relay_state_token,
-                        'hmac': hmac_token1,
-                        '_csrf': login_csrf,
-                    };
-                    var login_action_url = auth_base_url + '/signin-service/v1/' + client_id + '/login/identifier';
+        var post_data = {
+            'email': email,
+            'relayState': login_relay_state_token,
+            'hmac': hmac_token1,
+            '_csrf': login_csrf,
+        };
+        var login_action_url = auth_base_url + '/signin-service/v1/' + client_id + '/login/identifier';
 
-                    rp({
-                        uri: login_action_url,
-                        jar: cookiejar,
-                        headers: auth_request_headers,
-                        method: 'POST',
-                        form: post_data,
-                        simple: false,
-                        followAllRedirects: true
-                    }).then( function (body) {
-                        var hmac_token2 = extract_login_hmac(body);
+        return rp({
+            uri: login_action_url,
+            jar: cookiejar,
+            headers: auth_request_headers,
+            method: 'POST',
+            form: post_data,
+            simple: false,
+            followAllRedirects: true,
+            resolveWithFullResponse: true
+        });
+    }).then( function (response) {
+        var hmac_token2 = extract_login_hmac(response.body);
 
-                        auth_request_headers['Referer'] = login_action_url;
+        auth_request_headers['Referer'] = response.request.uri.href;
 
-                        var post_data = {
-                            'email': email,
-                            'password': pass,
-                            'relayState': login_relay_state_token,
-                            'hmac': hmac_token2,
-                            '_csrf': login_csrf,
-                            'login': true
-                        };
+        var post_data = {
+            'email': email,
+            'password': pass,
+            'relayState': login_relay_state_token,
+            'hmac': hmac_token2,
+            '_csrf': login_csrf,
+            'login': true
+        };
 
-                        var login_action2_url = auth_base_url + '/signin-service/v1/' + client_id + '/login/authenticate';
+        var login_action2_url = auth_base_url + '/signin-service/v1/' + client_id + '/login/authenticate';
 
-                        rp({
-                            uri: login_action2_url,
-                            jar: cookiejar,
-                            headers: auth_request_headers,
-                            method: 'POST',
-                            form: post_data,
-                            simple: false,
-                            followAllRedirects: true,
-                            resolveWithFullResponse: true
-                        }).then( function (response) {
-                            var ref2_url = response.request.uri.href;
+        return rp({
+            uri: login_action2_url,
+            jar: cookiejar,
+            headers: auth_request_headers,
+            method: 'POST',
+            form: post_data,
+            simple: false,
+            followAllRedirects: true,
+            resolveWithFullResponse: true
+        });
+    }).then( function (response) {
+        var ref2_url = response.request.uri.href;
 
-                            var portlet_code = extract_url_parameter(ref2_url, 'code');
-                            var state = extract_url_parameter(ref2_url, 'state');
+        var portlet_code = extract_url_parameter(ref2_url, 'code');
+        var state = extract_url_parameter(ref2_url, 'state');
 
-                            auth_request_headers['Referer'] = ref2_url;
-                            var portlet_data = {'_33_WAR_cored5portlet_code': portlet_code};
-                            var final_login_url = base_url + '/portal/web/guest/complete-login?p_auth=' + csrf + '&p_p_id=33_WAR_cored5portlet&p_p_lifecycle=1&p_p_state=normal&p_p_mode=view&p_p_col_id=column-1&p_p_col_count=1&_33_WAR_cored5portlet_javax.portlet.action=getLoginStatus'
+        auth_request_headers['Referer'] = ref2_url;
+        var portlet_data = {'_33_WAR_cored5portlet_code': portlet_code};
+        var final_login_url = base_url + '/portal/web/guest/complete-login?p_auth=' + csrf + '&p_p_id=33_WAR_cored5portlet&p_p_lifecycle=1&p_p_state=normal&p_p_mode=view&p_p_col_id=column-1&p_p_col_count=1&_33_WAR_cored5portlet_javax.portlet.action=getLoginStatus'
 
-                            rp({
-                                uri: final_login_url,
-                                jar: cookiejar,
-                                headers: auth_request_headers,
-                                method: 'POST',
-                                form: portlet_data,
-                                simple: false,
-                                followRedirect: false,
-                                resolveWithFullResponse: true
-                            }).then( function (response) {
-                                var base_json_url = response.headers.location;
+        return rp({
+            uri: final_login_url,
+            jar: cookiejar,
+            headers: auth_request_headers,
+            method: 'POST',
+            form: portlet_data,
+            simple: false,
+            followRedirect: false,
+            resolveWithFullResponse: true
+        });
+    }).then( function (response) {
+        var base_json_url = response.headers.location;
 
-                                rp({
-                                    uri: base_json_url,
-                                    jar: cookiejar,
-                                    headers: auth_request_headers,
-                                    method: 'GET',
-                                }).then( function (body) {
-                                    csrf = extract_csrf(body);
+        return rp({
+            uri: base_json_url,
+            jar: cookiejar,
+            headers: auth_request_headers,
+            method: 'GET',
+            resolveWithFullResponse: true
+        });
+    }).then( function (response) {
+        csrf = extract_csrf(response.body);
 
-                                    request_headers['Referer'] = base_json_url;
-                                    request_headers['X-CSRF-Token'] = csrf;
+        var base_json_url = response.request.uri.href;
 
-                                    const arrayToObject = (array) =>
-                                        array.reduce((obj, item) => {
-                                            obj[item.key] = item;
-                                            return obj
-                                        }, {});
+        request_headers['Referer'] = base_json_url;
+        request_headers['X-CSRF-Token'] = csrf;
 
-                                    var cookies = arrayToObject(cookiejar.getCookies(base_json_url).map(cookie => {
-                                        return cookie.toJSON()
-                                    }));
+        const arrayToObject = (array) =>
+            array.reduce((obj, item) => {
+                obj[item.key] = item;
+                return obj
+            }, {});
 
-                                    cb({
-                                        headers: request_headers,
-                                        cookies: cookies,
-                                        url: base_json_url
-                                    })
-                                }).catch( function (err) {
-                                    console.log(err)
-                                })
-                            }).catch( function (err) {
-                                console.log(err)
-                            })
-                        }).catch( function (err) {
-                            console.log(err)
-                        })
-                    }).catch( function (err) {
-                        console.log(err)
-                    })
-                })
-            })
-        })
+        var cookies = arrayToObject(cookiejar.getCookies(base_json_url).map(cookie => {
+            return cookie.toJSON()
+        }));
+
+        cb({
+            headers: request_headers,
+            cookies: cookies,
+            url: base_json_url
+        });
+    }).catch( function (err) {
+        console.log(err)
     })
 
 }
-/*
-login(function (loginObj) {
-    console.log(loginObj);
-});
-*/
