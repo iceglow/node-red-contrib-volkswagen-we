@@ -45,42 +45,42 @@ auth_request_headers = {
 
 // Get value from HTML head _csrf meta tag.
 function extract_csrf(string) {
-    var re = new RegExp('<meta name="_csrf" content="(.*?)"/>');
-    var result  = string.match(re);
+    const re = new RegExp('<meta name="_csrf" content="(.*?)"/>');
+    let result  = string.match(re);
 
     return result[1];
 }
 
 function extract_login_hmac(string) {
-    var re = new RegExp('<input.*?id="hmac".*?value="(.*?)"/>');
-    var result  = string.replace(/\n/).replace(/\r/).match(re);
+    const re = new RegExp('<input.*?id="hmac".*?value="(.*?)"/>');
+    let result  = string.replace(/\n/).replace(/\r/).match(re);
 
     return result[1];
 }
 
 function extract_login_csrf(string) {
-    var re = new RegExp('<input.*?id="csrf".*?value="(.*?)"/>');
-    var result  = string.replace(/\n/).replace(/\r/).match(re);
+    const re = new RegExp('<input.*?id="csrf".*?value="(.*?)"/>');
+    let result  = string.replace(/\n/).replace(/\r/).match(re);
 
     return result[1];
 }
 
 function extract_url_parameter(string, param) {
-    var re = new RegExp('(\\?|&)' + param + '=([^&]+)');
-    var result  = string.match(re);
+    const re = new RegExp('(\\?|&)' + param + '=([^&]+)');
+    let result  = string.match(re);
 
     return result[2];
 }
 
 function login(cb, email, pass) {
-    var cookiejar = rp.jar();
+    let cookiejar = rp.jar();
 
-    base_url = portal_base_url;
-    auth_base_url = 'https://identity.vwgroup.io';
-    landing_page_url = base_url + '/portal/en_GB/web/guest/home';
-    login_csrf = '';
-    login_relay_state_token = '';
-    client_id = '';
+    let base_url = portal_base_url;
+    let auth_base_url = 'https://identity.vwgroup.io';
+    const landing_page_url = base_url + '/portal/en_GB/web/guest/home';
+    let login_csrf = '';
+    let login_relay_state_token = '';
+    let client_id = '';
 
     rp({
         uri: landing_page_url,
@@ -88,10 +88,11 @@ function login(cb, email, pass) {
         json: true,
         headers: request_headers
     }).then( function (body) {
-        var csrf = extract_csrf(body);
+        const csrf = extract_csrf(body);
+        const get_login_url = base_url + '/portal/en_GB/web/guest/home/-/csrftokenhandling/get-login-url';
+
         auth_request_headers['Referer'] = landing_page_url;
         auth_request_headers['X-CSRF-Token'] = csrf;
-        get_login_url = base_url + '/portal/en_GB/web/guest/home/-/csrftokenhandling/get-login-url';
 
         return rp({
             uri: get_login_url,
@@ -101,7 +102,8 @@ function login(cb, email, pass) {
             method: 'POST'
         });
     }).then( function (body) {
-        var login_url = body.loginURL.path;
+        const login_url = body['loginURL'].path;
+
         client_id = extract_url_parameter(login_url, 'client_id');
 
         return rp({
@@ -114,7 +116,8 @@ function login(cb, email, pass) {
             resolveWithFullResponse: true
         });
     }).then( function (response) {
-        var login_form_url = response.headers.location;
+        const login_form_url = response.headers.location;
+
         login_relay_state_token = extract_url_parameter(login_form_url, 'relayState');
 
         return rp({
@@ -125,20 +128,21 @@ function login(cb, email, pass) {
             resolveWithFullResponse: true
         });
     }).then( function (response) {
-        var hmac_token1 = extract_login_hmac(response.body);
+        const hmac_token1 = extract_login_hmac(response.body);
+        const login_action_url = auth_base_url + '/signin-service/v1/' + client_id + '/login/identifier';
+
         login_csrf = extract_login_csrf(response.body);
 
         delete auth_request_headers['X-CSRF-Token'];
         auth_request_headers['Referer'] = response.request.uri.href;
         //auth_request_headers['Content-Type'] = 'application/x-www-form-urlencoded';
 
-        var post_data = {
+        const post_data = {
             'email': email,
             'relayState': login_relay_state_token,
             'hmac': hmac_token1,
             '_csrf': login_csrf,
         };
-        var login_action_url = auth_base_url + '/signin-service/v1/' + client_id + '/login/identifier';
 
         return rp({
             uri: login_action_url,
@@ -151,11 +155,12 @@ function login(cb, email, pass) {
             resolveWithFullResponse: true
         });
     }).then( function (response) {
-        var hmac_token2 = extract_login_hmac(response.body);
+        const hmac_token2 = extract_login_hmac(response.body);
+        const login_action2_url = auth_base_url + '/signin-service/v1/' + client_id + '/login/authenticate';
 
         auth_request_headers['Referer'] = response.request.uri.href;
 
-        var post_data = {
+        const post_data = {
             'email': email,
             'password': pass,
             'relayState': login_relay_state_token,
@@ -163,8 +168,6 @@ function login(cb, email, pass) {
             '_csrf': login_csrf,
             'login': true
         };
-
-        var login_action2_url = auth_base_url + '/signin-service/v1/' + client_id + '/login/authenticate';
 
         return rp({
             uri: login_action2_url,
@@ -177,42 +180,36 @@ function login(cb, email, pass) {
             resolveWithFullResponse: true
         });
     }).then( function (response) {
-        var ref2_url = response.request.uri.href;
-
-        var portlet_code = extract_url_parameter(ref2_url, 'code');
-        var state = extract_url_parameter(ref2_url, 'state');
+        const ref2_url = response.request.uri.href;
+        const portlet_code = extract_url_parameter(ref2_url, 'code');
+        const state = extract_url_parameter(ref2_url, 'state'); // Final login works with csrf as well as with this state param
+        const final_login_url = base_url + '/portal/web/guest/complete-login?p_auth=' + state + '&p_p_id=33_WAR_cored5portlet&p_p_lifecycle=1&p_p_state=normal&p_p_mode=view&p_p_col_id=column-1&p_p_col_count=1&_33_WAR_cored5portlet_javax.portlet.action=getLoginStatus';
 
         auth_request_headers['Referer'] = ref2_url;
-        var portlet_data = {'_33_WAR_cored5portlet_code': portlet_code};
-        var final_login_url = base_url + '/portal/web/guest/complete-login?p_auth=' + csrf + '&p_p_id=33_WAR_cored5portlet&p_p_lifecycle=1&p_p_state=normal&p_p_mode=view&p_p_col_id=column-1&p_p_col_count=1&_33_WAR_cored5portlet_javax.portlet.action=getLoginStatus'
 
         return rp({
             uri: final_login_url,
             jar: cookiejar,
             headers: auth_request_headers,
             method: 'POST',
-            form: portlet_data,
+            form: {'_33_WAR_cored5portlet_code': portlet_code},
             simple: false,
             followRedirect: false,
             resolveWithFullResponse: true
         });
     }).then( function (response) {
-        var base_json_url = response.headers.location;
-
         return rp({
-            uri: base_json_url,
+            uri: response.headers.location,
             jar: cookiejar,
             headers: auth_request_headers,
             method: 'GET',
             resolveWithFullResponse: true
         });
     }).then( function (response) {
-        csrf = extract_csrf(response.body);
-
-        var base_json_url = response.request.uri.href;
+        const base_json_url = response.request.uri.href;
 
         request_headers['Referer'] = base_json_url;
-        request_headers['X-CSRF-Token'] = csrf;
+        request_headers['X-CSRF-Token'] = extract_csrf(response.body);
 
         const arrayToObject = (array) =>
             array.reduce((obj, item) => {
@@ -220,7 +217,7 @@ function login(cb, email, pass) {
                 return obj
             }, {});
 
-        var cookies = arrayToObject(cookiejar.getCookies(base_json_url).map(cookie => {
+        const cookies = arrayToObject(cookiejar.getCookies(base_json_url).map(cookie => {
             return cookie.toJSON()
         }));
 
@@ -232,5 +229,4 @@ function login(cb, email, pass) {
     }).catch( function (err) {
         console.log(err)
     })
-
 }
