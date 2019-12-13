@@ -1,13 +1,26 @@
 {
   "name": "node-red-contrib-volkswagen-we",
   "version": "0.0.1",
-  "description": "",
-  "main": "index.js",
+  "description": "Simple Node-RED nodes for interacting with Volkswagen We.",
+  "author": "Joakim Lundin <joakim.lundin@gmail.com>",
+  "license": "BSD-3-Clause",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/iceglow/node-red-contrib-volkswagen-we.git"
+  },
+  "bugs": {
+    "url": "https://github.com/iceglow/node-red-contrib-volkswagen-we/issues"
+  },
+  "homepage": "https://github.com/iceglow/node-red-contrib-volkswagen-we#readme",
+  "main": "we-connect-login.js",
+  "keywords": [
+    "node-red",
+    "volkswagen",
+    "we"
+  ],
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
-  "author": "",
-  "license": "ISC",
   "node-red": {
     "nodes": {
       "we-connect-login": "we-connect-login.js"
