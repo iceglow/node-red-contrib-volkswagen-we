@@ -86,7 +86,8 @@ function login(cb, email, pass) {
         uri: landing_page_url,
         jar: cookiejar,
         json: true,
-        headers: request_headers
+        headers: request_headers,
+        rejectUnauthorized: false
     }).then( function (body) {
         const csrf = extract_csrf(body);
         const get_login_url = base_url + '/portal/en_GB/web/guest/home/-/csrftokenhandling/get-login-url';
@@ -99,7 +100,8 @@ function login(cb, email, pass) {
             jar: cookiejar,
             json: true,
             headers: auth_request_headers,
-            method: 'POST'
+            method: 'POST',
+            rejectUnauthorized: false
         });
     }).then( function (body) {
         const login_url = body['loginURL'].path;
@@ -113,7 +115,8 @@ function login(cb, email, pass) {
             headers: auth_request_headers,
             method: 'POST',
             simple: false,
-            resolveWithFullResponse: true
+            resolveWithFullResponse: true,
+            rejectUnauthorized: false
         });
     }).then( function (response) {
         const login_form_url = response.headers.location;
@@ -125,7 +128,8 @@ function login(cb, email, pass) {
             jar: cookiejar,
             json: true,
             headers: auth_request_headers,
-            resolveWithFullResponse: true
+            resolveWithFullResponse: true,
+            rejectUnauthorized: false
         });
     }).then( function (response) {
         const hmac_token1 = extract_login_hmac(response.body);
@@ -152,7 +156,8 @@ function login(cb, email, pass) {
             form: post_data,
             simple: false,
             followAllRedirects: true,
-            resolveWithFullResponse: true
+            resolveWithFullResponse: true,
+            rejectUnauthorized: false
         });
     }).then( function (response) {
         const hmac_token2 = extract_login_hmac(response.body);
@@ -177,7 +182,8 @@ function login(cb, email, pass) {
             form: post_data,
             simple: false,
             followAllRedirects: true,
-            resolveWithFullResponse: true
+            resolveWithFullResponse: true,
+            rejectUnauthorized: false
         });
     }).then( function (response) {
         const ref2_url = response.request.uri.href;
@@ -195,7 +201,8 @@ function login(cb, email, pass) {
             form: {'_33_WAR_cored5portlet_code': portlet_code},
             simple: false,
             followRedirect: false,
-            resolveWithFullResponse: true
+            resolveWithFullResponse: true,
+            rejectUnauthorized: false
         });
     }).then( function (response) {
         return rp({
@@ -203,7 +210,8 @@ function login(cb, email, pass) {
             jar: cookiejar,
             headers: auth_request_headers,
             method: 'GET',
-            resolveWithFullResponse: true
+            resolveWithFullResponse: true,
+            rejectUnauthorized: false
         });
     }).then( function (response) {
         const base_json_url = response.request.uri.href;
