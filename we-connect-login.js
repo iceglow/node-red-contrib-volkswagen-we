@@ -8,6 +8,9 @@ module.exports = function(RED) {
         node.on('input', function(msg) {
             login(function (loginObj) {
                 msg.we_connect = loginObj;
+                msg.headers = loginObj.headers;
+                msg.cookies = loginObj.cookies;
+                msg.vw_base_url = loginObj.url;
                 node.send(msg);
             }, this.credentials.email, this.credentials.password)
         });
