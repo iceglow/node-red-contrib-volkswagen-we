@@ -53,3 +53,6 @@ After successful login to VW We Connect, the 'we-connect-login' node sets a few 
   "url":"THE_BASE_URL"
 }
 ```
+
+## Credits
+Credits should go to [wez3](https://github.com/wez3) for his [volkswagen-carnet-client](https://github.com/wez3/volkswagen-carnet-client) scripts. The Volkswagen communication for these nodes are heavily based on that implementation.
