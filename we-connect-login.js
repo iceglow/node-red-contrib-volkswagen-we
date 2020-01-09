@@ -5,7 +5,7 @@ module.exports = function(RED) {
     function WeConnectLogin(config) {
         RED.nodes.createNode(this, config);
         var node = this;
-        node.on('input', function(msg) {
+        node.on('input', function(msg, send, done) {
             login(function (loginObj) {
                 msg.we_connect = loginObj;
                 msg.headers = loginObj.headers;
@@ -13,7 +13,7 @@ module.exports = function(RED) {
                 msg.vw_base_url = loginObj.url;
                 node.send(msg);
             },
-                {rejectUnauthorized: this.rejectUnauthorized},
+                {rejectUnauthorized: config.rejectUnauthorized},
                 this.credentials.email, this.credentials.password)
         });
     }
