@@ -3,7 +3,8 @@
         category: 'function',
         color: '#a6bbcf',
         defaults: {
-            name: {value:""}
+            name: {value:""},
+            rejectUnauthorized: {value: true}
         },
         inputs:1,
         outputs:1,
@@ -24,15 +25,58 @@
         <input type="text" id="node-input-name" placeholder="Name">
     </div>
     <div class="form-row">
-       <label for="node-input-email"><i class="icon-tag"></i> Email</label>
-       <input type="text" id="node-input-email">
+        <label for="node-input-email"><i class="icon-tag"></i> Email</label>
+        <input type="text" id="node-input-email">
     </div>
     <div class="form-row">
-       <label for="node-input-password"><i class="icon-tag"></i> Password</label>
-       <input type="password" id="node-input-password">
+        <label for="node-input-password"><i class="icon-tag"></i> Password</label>
+        <input type="password" id="node-input-password">
+    </div>
+    <div class="form-row" id="node-reg-row">
+        <hr />
+        <input type="checkbox" id="node-input-rejectUnauthorized" style="display: inline-block; width: auto; vertical-align: top;">
+        <label for="node-input-rejectUnauthorized" style="width: 90%;">Reject unauthorized</label>
     </div>
 </script>
 
 <script type="text/x-red" data-help-name="we-connect-login">
     <p>A node to log in to the Volkswagen We Connect web app.</p>
+
+    <h3>Inputs</h3>
+        <p>At this moment no inputs used.</p>
+
+    <h3>Outputs</h3>
+        <ol class="node-ports">
+            <li>Standard output
+                <dl class="message-properties">
+                    <dt>we_connect <span class="property-type">object</span></dt>
+                    <dd>a JSON object containing headers, cookies and base URL needed for fetching data or calling actions on VW portal.</dd>
+                </dl>
+                <dl class="message-properties">
+                    <dt>headers <span class="property-type">object</span></dt>
+                    <dd>headers set during login, should be used in HTTP calls for data/actions. Can be directly feed in to standard 'http request' node.</dd>
+                </dl>
+                <dl class="message-properties">
+                    <dt>cookies <span class="property-type">object</span></dt>
+                    <dd>cookies set during login, should be used in HTTP calls for data/actions. Can be directly feed in to standard 'http request' node.</dd>
+                </dl>
+                <dl class="message-properties">
+                    <dt>vw_base_url <span class="property-type">string</span></dt>
+                    <dd>the base URL as string, to be used when calling for data/actions.</dd>
+                </dl>
+            </li>
+        </ol>
+
+    <h3>Details</h3>
+        <p>The node logs in to the WE Connect Portal and outputs properties needed for subsequent calls for information or actions.
+        <code>msg.we_connect</code> is outputted in the form of a JSON object containing all properties needed.
+        <code>msg.headers</code> and <code>msg.cookies</code> are populated after successful login and can be directly fed in to a standard "http request" node.
+        The <code>msg.vw_base_url</code> contains the base URL to prefix any HTTP requests with when calling for information or actions.</p>
+        <p>It's been seen that the certificate chain is not set up to standard, or that node has a hard time validating it. Therefore you can set 'rejectUnauthorized' to false if needed in the node.</p>
+
+    <h3>References</h3>
+        <ul>
+            <li><a href="https://www.portal.volkswagen-we.com">Volkswagen WE Connect Portal</a> - the portal with full functionality.</li>
+            <li><a href="https://github.com/iceglow/node-red-contrib-volkswagen-we">GitHub</a> - the nodes github repository</li>
+        </ul>
 </script>

@@ -12,7 +12,9 @@ module.exports = function(RED) {
                 msg.cookies = loginObj.cookies;
                 msg.vw_base_url = loginObj.url;
                 node.send(msg);
-            }, this.credentials.email, this.credentials.password)
+            },
+                {rejectUnauthorized: this.rejectUnauthorized},
+                this.credentials.email, this.credentials.password)
         });
     }
     RED.nodes.registerType("we-connect-login", WeConnectLogin,{
@@ -75,7 +77,7 @@ function extract_url_parameter(string, param) {
     return result[2];
 }
 
-function login(cb, email, pass) {
+function login(cb, options, email, pass) {
     let cookiejar = rp.jar();
 
     let base_url = portal_base_url;
@@ -90,7 +92,7 @@ function login(cb, email, pass) {
         jar: cookiejar,
         json: true,
         headers: request_headers,
-        rejectUnauthorized: false
+        rejectUnauthorized: options.rejectUnauthorized
     }).then( function (body) {
         const csrf = extract_csrf(body);
         const get_login_url = base_url + '/portal/en_GB/web/guest/home/-/csrftokenhandling/get-login-url';
@@ -104,7 +106,7 @@ function login(cb, email, pass) {
             json: true,
             headers: auth_request_headers,
             method: 'POST',
-            rejectUnauthorized: false
+            rejectUnauthorized: options.rejectUnauthorized
         });
     }).then( function (body) {
         const login_url = body['loginURL'].path;
@@ -119,7 +121,7 @@ function login(cb, email, pass) {
             method: 'POST',
             simple: false,
             resolveWithFullResponse: true,
-            rejectUnauthorized: false
+            rejectUnauthorized: options.rejectUnauthorized
         });
     }).then( function (response) {
         const login_form_url = response.headers.location;
@@ -132,7 +134,7 @@ function login(cb, email, pass) {
             json: true,
             headers: auth_request_headers,
             resolveWithFullResponse: true,
-            rejectUnauthorized: false
+            rejectUnauthorized: options.rejectUnauthorized
         });
     }).then( function (response) {
         const hmac_token1 = extract_login_hmac(response.body);
@@ -160,7 +162,7 @@ function login(cb, email, pass) {
             simple: false,
             followAllRedirects: true,
             resolveWithFullResponse: true,
-            rejectUnauthorized: false
+            rejectUnauthorized: options.rejectUnauthorized
         });
     }).then( function (response) {
         const hmac_token2 = extract_login_hmac(response.body);
@@ -186,7 +188,7 @@ function login(cb, email, pass) {
             simple: false,
             followAllRedirects: true,
             resolveWithFullResponse: true,
-            rejectUnauthorized: false
+            rejectUnauthorized: options.rejectUnauthorized
         });
     }).then( function (response) {
         const ref2_url = response.request.uri.href;
@@ -205,7 +207,7 @@ function login(cb, email, pass) {
             simple: false,
             followRedirect: false,
             resolveWithFullResponse: true,
-            rejectUnauthorized: false
+            rejectUnauthorized: options.rejectUnauthorized
         });
     }).then( function (response) {
         return rp({
@@ -214,7 +216,7 @@ function login(cb, email, pass) {
             headers: auth_request_headers,
             method: 'GET',
             resolveWithFullResponse: true,
-            rejectUnauthorized: false
+            rejectUnauthorized: options.rejectUnauthorized
         });
     }).then( function (response) {
         const base_json_url = response.request.uri.href;
