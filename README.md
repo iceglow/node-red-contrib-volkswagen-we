@@ -1,7 +1,10 @@
 # node-red-contrib-volkswagen-we
 Simple Node-RED nodes for interacting with Volkswagen We.
 
-## Outputs
+## Node we-connect-login
+Node that logs in to the WE Connect Portal and outputs properties needed for subsequent calls for information or actions.
+
+### Outputs
 After successful login to VW We Connect, the 'we-connect-login' node sets a few outputs.
 
 **msg.vw_base_url**: The base URL as string, to be used when calling for data/actions.
