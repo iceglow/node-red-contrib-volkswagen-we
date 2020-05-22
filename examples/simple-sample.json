@@ -1,0 +1,163 @@
+[
+  {
+    "id": "82174ad8.207938",
+    "type": "tab",
+    "label": "sample flow",
+    "disabled": false,
+    "info": ""
+  },
+  {
+    "id": "62a8f1c0.dcbcc",
+    "type": "we-connect-login",
+    "z": "82174ad8.207938",
+    "name": "VW We Login",
+    "rejectUnauthorized": false,
+    "x": 180,
+    "y": 360,
+    "wires": [
+      [
+        "a47d7ada.a2eed8",
+        "835c5a86.a447d8"
+      ]
+    ]
+  },
+  {
+    "id": "a2e71954.ae6338",
+    "type": "http request",
+    "z": "82174ad8.207938",
+    "name": "/-/emanager/get-emanager",
+    "method": "POST",
+    "ret": "txt",
+    "paytoqs": false,
+    "url": "",
+    "tls": "",
+    "proxy": "",
+    "authType": "",
+    "x": 640,
+    "y": 400,
+    "wires": [
+      [
+        "668c248f.08631c"
+      ]
+    ]
+  },
+  {
+    "id": "835c5a86.a447d8",
+    "type": "function",
+    "z": "82174ad8.207938",
+    "name": "prepare request",
+    "func": "msg.url = msg.we_connect.url + '/-/emanager/get-emanager';\nmsg.rejectUnauthorized = false;\nreturn msg;",
+    "outputs": 1,
+    "noerr": 0,
+    "x": 400,
+    "y": 400,
+    "wires": [
+      [
+        "a2e71954.ae6338"
+      ]
+    ]
+  },
+  {
+    "id": "668c248f.08631c",
+    "type": "json",
+    "z": "82174ad8.207938",
+    "name": "",
+    "property": "payload",
+    "action": "",
+    "pretty": false,
+    "x": 850,
+    "y": 400,
+    "wires": [
+      [
+        "fee3725f.a8961"
+      ]
+    ]
+  },
+  {
+    "id": "ce622347.6483",
+    "type": "http request",
+    "z": "82174ad8.207938",
+    "name": "/-/cf/get-location",
+    "method": "POST",
+    "ret": "txt",
+    "paytoqs": false,
+    "url": "",
+    "tls": "",
+    "proxy": "",
+    "authType": "",
+    "x": 610,
+    "y": 320,
+    "wires": [
+      [
+        "beb729a9.91d2f8"
+      ]
+    ]
+  },
+  {
+    "id": "a47d7ada.a2eed8",
+    "type": "function",
+    "z": "82174ad8.207938",
+    "name": "prepare request",
+    "func": "msg.url = msg.we_connect.url + '/-/cf/get-location';\nmsg.rejectUnauthorized = false;\nreturn msg;",
+    "outputs": 1,
+    "noerr": 0,
+    "x": 400,
+    "y": 320,
+    "wires": [
+      [
+        "ce622347.6483"
+      ]
+    ]
+  },
+  {
+    "id": "beb729a9.91d2f8",
+    "type": "json",
+    "z": "82174ad8.207938",
+    "name": "",
+    "property": "payload",
+    "action": "",
+    "pretty": false,
+    "x": 850,
+    "y": 320,
+    "wires": [
+      [
+        "fee3725f.a8961"
+      ]
+    ]
+  },
+  {
+    "id": "3ec9518e.1584fe",
+    "type": "inject",
+    "z": "82174ad8.207938",
+    "name": "",
+    "topic": "",
+    "payload": "",
+    "payloadType": "date",
+    "repeat": "",
+    "crontab": "",
+    "once": false,
+    "onceDelay": 0.1,
+    "x": 120,
+    "y": 260,
+    "wires": [
+      [
+        "62a8f1c0.dcbcc"
+      ]
+    ]
+  },
+  {
+    "id": "fee3725f.a8961",
+    "type": "debug",
+    "z": "82174ad8.207938",
+    "name": "",
+    "active": true,
+    "tosidebar": true,
+    "console": false,
+    "tostatus": false,
+    "complete": "payload",
+    "targetType": "msg",
+    "x": 1030,
+    "y": 360,
+    "wires": []
+  }
+]
