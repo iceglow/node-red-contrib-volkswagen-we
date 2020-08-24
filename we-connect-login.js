@@ -1,20 +1,33 @@
 const request = require('request');
 const rp = require('request-promise');
 
+/*
+ * Login node
+ *
+ * Status:
+ *   - grey   dot  "not logged in"
+ *   - green  dot  "logged in"
+ *   - yellow ring "logging in"
+ *   - red    ring "error logging in"
+ */
+
 module.exports = function(RED) {
     function WeConnectLogin(config) {
         RED.nodes.createNode(this, config);
         var node = this;
+
+        node.status({fill:"grey",shape:"dot",text:"not logged in"});
         node.on('input', function(msg, send, done) {
             login(function (loginObj) {
                 msg.we_connect = loginObj;
                 msg.headers = loginObj.headers;
                 msg.cookies = loginObj.cookies;
                 msg.vw_base_url = loginObj.url;
+                node.status({fill:"green",shape:"dot",text:"logged in"});
                 node.send(msg);
             },
                 {rejectUnauthorized: config.rejectUnauthorized},
-                this.credentials.email, this.credentials.password)
+                this.credentials.email, this.credentials.password, node)
         });
     }
     RED.nodes.registerType("we-connect-login", WeConnectLogin,{
@@ -77,7 +90,7 @@ function extract_url_parameter(string, param) {
     return result[2];
 }
 
-function login(cb, options, email, pass) {
+function login(cb, options, email, pass, node) {
     let cookiejar = rp.jar();
 
     let base_url = portal_base_url;
@@ -86,6 +99,8 @@ function login(cb, options, email, pass) {
     let login_csrf = '';
     let login_relay_state_token = '';
     let client_id = '';
+
+    node.status({fill:"yellow",shape:"ring",text:"logging in"});
 
     rp({
         uri: landing_page_url,
@@ -240,6 +255,8 @@ function login(cb, options, email, pass) {
             url: base_json_url
         });
     }).catch( function (err) {
+        node.status({fill:"red",shape:"ring",text:"error logging in"});
+        node.error(err);
         console.log(err)
     })
 }
